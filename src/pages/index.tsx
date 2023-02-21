@@ -47,7 +47,6 @@ export default function Home() {
                     <Space>
                         <Dragger
                             beforeUpload={(file) => {
-                                console.log('file.type', file.type);
                                 const isCSV = file.type === 'text/csv';
                                 if (!isCSV) {
                                     message.error(`${file.name} není csv soubor.`);
@@ -74,6 +73,7 @@ export default function Home() {
                             type={'primary'}
                             onClick={() => {
                                 localStorage.setItem('firm-list', file || '');
+                                console.log('file', file);
                                 message.success('Soubor nahrán.');
                                 update();
                             }}
