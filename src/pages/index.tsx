@@ -1,33 +1,40 @@
-import {Button, Col, Divider, Row, Space} from "antd";
+import {Button, Col, Divider, message, Row, Space} from "antd";
 import {useEffect, useState} from "react";
 import csvToJson from 'csvtojson';
+import {Upload} from 'antd';
+
+const {Dragger} = Upload;
 
 interface RowInterface {
     profession: string;
-        col1row1?: string;
-        col1row2?: string;
-        col1row3?: string;
-        col1row4?: string;
-        col1row5?: string;
-        col1row6?: string;
-        col2row1?: string;
-        col2row2?: string;
-        col2row3?: string;
-        col2row4?: string;
-        col2row5?: string;
-        col2row6?: string;
+    col1row1?: string;
+    col1row2?: string;
+    col1row3?: string;
+    col1row4?: string;
+    col1row5?: string;
+    col1row6?: string;
+    col2row1?: string;
+    col2row2?: string;
+    col2row3?: string;
+    col2row4?: string;
+    col2row5?: string;
+    col2row6?: string;
 }
 
 export default function Home() {
+    const [file, setFile] = useState<string>();
     const [data, setData] = useState<RowInterface[]>([]);
     const [professionDetails, setProfessionDetails] = useState<RowInterface | undefined>()
+    const update = () => {
+        const ls = localStorage.getItem('firm-list');
+        csvToJson().fromString(ls as string).then((json) => {
+            setData(json);
+            setProfessionDetails(json[0])
+        });
+    }
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            const ls = localStorage.getItem('firm-list');
-            csvToJson().fromString(ls as string).then((json) => {
-                setData(json);
-                setProfessionDetails(json[0])
-            });
+            update();
         }
     }, [])
 
@@ -36,7 +43,39 @@ export default function Home() {
         <div style={{height: '100vh', background: 'white', padding: '1rem'}}>
             <Row>
                 <Col>
-                    Nahrej CSV:
+                    <Space>
+                        <Dragger
+                            beforeUpload={(file) => {
+                                console.log('file.type', file.type);
+                                const isCSV = file.type === 'text/csv';
+                                if (!isCSV) {
+                                    message.error(`${file.name} není csv soubor.`);
+                                }
+                                return isCSV || Upload.LIST_IGNORE;
+                            }}
+                            maxCount={1}
+                            onChange={(info) => {
+                                if (info.file.status === 'done') {
+                                    const reader = new FileReader();
+                                    reader.onload = (e) => {
+                                        if (typeof e.target.result === 'string')
+                                        setFile(e.target.result);
+                                    }
+                                    reader.readAsText(info.file.originFileObj);
+
+                                }
+                            }
+                            }
+                        >
+                            <p className="ant-upload-text">Nahrej CSV</p>
+                        </Dragger>
+                        <Button type={'primary'} onClick={() => {
+                        localStorage.setItem('firm-list', file || '')
+                            message.success('Soubor nahrán.');
+                            update();
+                        }
+                        }>ODESLAT</Button>
+                    </Space>
                 </Col>
                 <Divider/>
             </Row>
@@ -45,7 +84,8 @@ export default function Home() {
                 <Col span={4}>
                     <Space direction="vertical">
                         {data.map((row, index) => (
-                            <Button key={index} type={row.profession === professionDetails?.profession ? 'primary' : 'default'}
+                            <Button key={index}
+                                    type={row.profession === professionDetails?.profession ? 'primary' : 'default'}
                                     style={{display: 'block'}} onClick={() => {
                                 setProfessionDetails(row)
                             }}>
