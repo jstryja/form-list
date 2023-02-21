@@ -1,8 +1,8 @@
-import { Button, Col, Divider, message, Row, Space, Upload } from 'antd';
+import {Button, Col, Divider, message, Row, Space, Upload} from 'antd';
 import csvToJson from 'csvtojson';
-import { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 
-const { Dragger } = Upload;
+const {Dragger} = Upload;
 
 interface RowInterface {
     profession: string;
@@ -41,12 +41,15 @@ export default function Home() {
     }, []);
 
     return (
-        <div style={{ height: '100vh', background: 'white', padding: '1rem' }}>
+        <div style={{height: '100vh', background: 'white', padding: '1rem'}}>
             <Row>
                 <Col>
                     <Space>
                         <Dragger
-                            action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
+                            // action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
+                            customRequest={({onSuccess}) => {
+                                onSuccess && onSuccess('ok');
+                            }}
                             beforeUpload={(file) => {
                                 const isCSV = file.type === 'text/csv';
                                 if (!isCSV) {
@@ -73,17 +76,22 @@ export default function Home() {
                         <Button
                             type={'primary'}
                             onClick={() => {
-                                localStorage.setItem('firm-list', file || '');
-                                console.log('file', file);
-                                message.success('Soubor nahrán.');
+                                if (file) {
+                                    localStorage.setItem('firm-list', file);
+                                    console.log('file', file);
+                                    message.success('Soubor nahrán.');
+                                } else {
+                                    message.error('Prázdný soubor')
+                                }
                                 update();
                             }}
+                            disabled={!file}
                         >
                             ODESLAT
                         </Button>
                     </Space>
                 </Col>
-                <Divider />
+                <Divider/>
             </Row>
 
             <Row>
@@ -93,7 +101,7 @@ export default function Home() {
                             <Button
                                 key={index}
                                 type={row.profession === professionDetails?.profession ? 'primary' : 'default'}
-                                style={{ display: 'block' }}
+                                style={{display: 'block'}}
                                 onClick={() => {
                                     setProfessionDetails(row);
                                 }}
@@ -104,24 +112,24 @@ export default function Home() {
                     </Space>
                 </Col>
                 <Col span={10}>
-                    <Divider type={'vertical'} style={{ height: '100%' }} />
-                    {professionDetails?.col1row1} <br />
-                    {professionDetails?.col1row2} <br />
-                    {professionDetails?.col1row3} <br />
-                    <br />
-                    {professionDetails?.col1row4} <br />
-                    {professionDetails?.col1row5} <br />
-                    {professionDetails?.col1row6} <br />
+                    <Divider type={'vertical'} style={{height: '100%'}}/>
+                    {professionDetails?.col1row1} <br/>
+                    {professionDetails?.col1row2} <br/>
+                    {professionDetails?.col1row3} <br/>
+                    <br/>
+                    {professionDetails?.col1row4} <br/>
+                    {professionDetails?.col1row5} <br/>
+                    {professionDetails?.col1row6} <br/>
                 </Col>
                 <Col span={10}>
-                    <Divider type={'vertical'} style={{ height: '100%' }} />
-                    {professionDetails?.col2row1} <br />
-                    {professionDetails?.col2row2} <br />
-                    {professionDetails?.col2row3} <br />
-                    <br />
-                    {professionDetails?.col2row4} <br />
-                    {professionDetails?.col2row5} <br />
-                    {professionDetails?.col2row6} <br />
+                    <Divider type={'vertical'} style={{height: '100%'}}/>
+                    {professionDetails?.col2row1} <br/>
+                    {professionDetails?.col2row2} <br/>
+                    {professionDetails?.col2row3} <br/>
+                    <br/>
+                    {professionDetails?.col2row4} <br/>
+                    {professionDetails?.col2row5} <br/>
+                    {professionDetails?.col2row6} <br/>
                 </Col>
             </Row>
         </div>
