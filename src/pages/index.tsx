@@ -58,10 +58,12 @@ export default function Home() {
                                 if (info.file.status === 'done') {
                                     const reader = new FileReader();
                                     reader.onload = (e) => {
-                                        if (typeof e.target.result === 'string')
-                                        setFile(e.target.result);
+                                        if (typeof e.target?.result === 'string')
+                                            setFile(e.target.result);
                                     }
-                                    reader.readAsText(info.file.originFileObj);
+                                    if (info.file.originFileObj) {
+                                        reader.readAsText(info.file.originFileObj);
+                                    }
 
                                 }
                             }
@@ -70,7 +72,7 @@ export default function Home() {
                             <p className="ant-upload-text">Nahrej CSV</p>
                         </Dragger>
                         <Button type={'primary'} onClick={() => {
-                        localStorage.setItem('firm-list', file || '')
+                            localStorage.setItem('firm-list', file || '')
                             message.success('Soubor nahrán.');
                             update();
                         }
