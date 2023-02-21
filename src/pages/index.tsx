@@ -59,6 +59,7 @@ export default function Home() {
                                 if (info.file.status === 'done') {
                                     const reader = new FileReader();
                                     reader.onload = (e) => {
+                                        e.preventDefault();
                                         if (typeof e.target?.result === 'string') setFile(e.target.result);
                                     };
                                     if (info.file.originFileObj) {
