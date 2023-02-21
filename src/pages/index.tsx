@@ -46,6 +46,7 @@ export default function Home() {
                 <Col>
                     <Space>
                         <Dragger
+                            action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
                             beforeUpload={(file) => {
                                 const isCSV = file.type === 'text/csv';
                                 if (!isCSV) {
