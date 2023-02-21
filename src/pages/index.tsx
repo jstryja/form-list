@@ -1,38 +1,42 @@
 import {Button, Col, Divider, Row, Space} from "antd";
-import {useState} from "react";
+import {useEffect, useState} from "react";
+import csvToJson from 'csvtojson';
+
+interface RowInterface {
+    profession: string;
+        col1row1?: string;
+        col1row2?: string;
+        col1row3?: string;
+        col1row4?: string;
+        col1row5?: string;
+        col1row6?: string;
+        col2row1?: string;
+        col2row2?: string;
+        col2row3?: string;
+        col2row4?: string;
+        col2row5?: string;
+        col2row6?: string;
+}
 
 export default function Home() {
-    const professions = ['zemní práce', 'beton', 'obklady, dlažby'];
-    const info = new Map([['zemní práce', 'Firma 1']])
+    const [data, setData] = useState<RowInterface[]>([]);
+    const [professionDetails, setProfessionDetails] = useState<RowInterface | undefined>()
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const ls = localStorage.getItem('firm-list');
+            csvToJson().fromString(ls as string).then((json) => {
+                setData(json);
+                setProfessionDetails(json[0])
+            });
+        }
+    }, [])
 
-    interface DataInterface {
-        profession: string;
-        col1: {
-            row1?: string;
-            row2?: string;
-            row3?: string;
-            row4?: string;
-            row5?: string;
-            row6?: string;
-        };
-        col2: {
-            row1?: string;
-            row2?: string;
-            row3?: string;
-            row4?: string;
-            row5?: string;
-            row6?: string;
-        };
 
-    }
-
-    const data = [{}]
-    const [selectedProfession, setSelectedProfession] = useState(professions[0]);
     return (
         <div style={{height: '100vh', background: 'white', padding: '1rem'}}>
             <Row>
                 <Col>
-                    Header
+                    Nahrej CSV:
                 </Col>
                 <Divider/>
             </Row>
@@ -40,10 +44,12 @@ export default function Home() {
             <Row>
                 <Col span={4}>
                     <Space direction="vertical">
-                        {professions.map((profession, index) => (
-                            <Button key={index} type={profession === selectedProfession ? 'primary' : 'default'}
-                                    style={{display: 'block'}} onClick={() => setSelectedProfession(profession)}>
-                                {index + 1}. {profession}
+                        {data.map((row, index) => (
+                            <Button key={index} type={row.profession === professionDetails?.profession ? 'primary' : 'default'}
+                                    style={{display: 'block'}} onClick={() => {
+                                setProfessionDetails(row)
+                            }}>
+                                {index + 1}. {row.profession}
                             </Button>
                         ))}
                     </Space>
@@ -51,11 +57,21 @@ export default function Home() {
                 <Col span={10}>
                     <Divider type={'vertical'} style={{height: '100%'}}/>
 
-                    {selectedProfession}
+                    {professionDetails?.col1row1} <br/>
+                    {professionDetails?.col1row2} <br/>
+                    {professionDetails?.col1row3} <br/><br/>
+                    {professionDetails?.col1row4} <br/>
+                    {professionDetails?.col1row5} <br/>
+                    {professionDetails?.col1row6} <br/>
                 </Col>
                 <Col span={10}>
                     <Divider type={'vertical'} style={{height: '100%'}}/>
-                    {selectedProfession}
+                    {professionDetails?.col2row1} <br/>
+                    {professionDetails?.col2row2} <br/>
+                    {professionDetails?.col2row3} <br/><br/>
+                    {professionDetails?.col2row4} <br/>
+                    {professionDetails?.col2row5} <br/>
+                    {professionDetails?.col2row6} <br/>
                 </Col>
             </Row>
         </div>
