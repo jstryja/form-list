@@ -1,8 +1,8 @@
-import { Button, Col, Divider, message, Row, Space, Upload } from 'antd';
+import { Button, Col, Collapse, Divider, message, Row, Space, Upload } from 'antd';
 import csvToJson from 'csvtojson';
 import { useEffect, useState } from 'react';
 import { mapDataToProfessions, ProfessionInterface, RowInterface } from '@/interfaces';
-import { Collapse } from 'antd';
+import createReport from 'docx-templates';
 
 const { Panel } = Collapse;
 const { Dragger } = Upload;
@@ -11,7 +11,7 @@ export default function Home() {
     const [file, setFile] = useState<string>();
     const [professionDetails, setProfessionDetails] = useState<ProfessionInterface | undefined>();
     const [professions, setProfessions] = useState<ProfessionInterface[]>([]);
-
+    const [docxFileUrl, setDocxFileUrl] = useState<string>();
     const update = () => {
         const ls = localStorage.getItem('firm-list');
         if (!ls) return;
@@ -61,6 +61,7 @@ export default function Home() {
                         >
                             <p className="ant-upload-text">Nahrej CSV</p>
                         </Dragger>
+
                         <Button
                             type={'primary'}
                             onClick={() => {
@@ -76,6 +77,62 @@ export default function Home() {
                             disabled={!file}
                         >
                             ODESLAT
+                        </Button>
+
+                        <Dragger
+                            customRequest={({ onSuccess }) => {
+                                onSuccess && onSuccess('ok');
+                            }}
+                            beforeUpload={(file) => {
+                                console.log('file.type', file.type);
+                                const isCSV =
+                                    file.type ===
+                                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+                                if (!isCSV) {
+                                    message.error(`${file.name} není docx soubor.`);
+                                }
+                                return isCSV || Upload.LIST_IGNORE;
+                            }}
+                            maxCount={1}
+                            onChange={(info) => {
+                                if (info.file.status === 'done') {
+                                    const reader = new FileReader();
+                                    const reader2 = new FileReader();
+                                    reader2.onload = (e) => {
+                                        e.preventDefault();
+                                        if (typeof e.target?.result === 'string') {
+                                            console.log('e.target?.result', e.target?.result);
+                                            setDocxFileUrl(e.target?.result);
+                                        }
+                                    };
+                                    reader.onload = async (e) => {
+                                        e.preventDefault();
+                                        // console.log('e.target?.result', e.target?.result);
+                                        const template = Buffer.from(e.target?.result as ArrayBuffer);
+                                        console.log('template', template);
+                                        const report = await createReport({
+                                            template,
+                                            data: {
+                                                title: 'Abc',
+                                                surname: 'Appleseed',
+                                            },
+                                        });
+                                        console.log('new Blob([report])', new Blob([report]));
+                                        reader2.readAsDataURL(new Blob([report]));
+                                        // if (typeof e.target?.result === 'string') setDocxFileUrl(e.target.result);
+                                    };
+                                    if (info.file.originFileObj) {
+                                        reader.readAsArrayBuffer(info.file.originFileObj);
+                                    }
+                                }
+                            }}
+                        >
+                            <p className="ant-upload-text">Nahrej docx</p>
+                        </Dragger>
+                        <Button disabled={!docxFileUrl}>
+                            <a href={docxFileUrl} download>
+                                Stáhnout
+                            </a>
                         </Button>
                     </Space>
                 </Col>
@@ -117,16 +174,6 @@ export default function Home() {
                         ))}
                     </Collapse>
                 </Col>
-                {/*<Col span={10}>*/}
-                {/*    <Divider type={'vertical'} style={{height: '100%'}}/>*/}
-                {/*    {professionDetails?.col2row1} <br/>*/}
-                {/*    {professionDetails?.col2row2} <br/>*/}
-                {/*    {professionDetails?.col2row3} <br/>*/}
-                {/*    <br/>*/}
-                {/*    {professionDetails?.col2row4} <br/>*/}
-                {/*    {professionDetails?.col2row5} <br/>*/}
-                {/*    {professionDetails?.col2row6} <br/>*/}
-                {/*</Col>*/}
             </Row>
         </div>
     );
