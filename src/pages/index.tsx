@@ -1,17 +1,16 @@
-import {Button, Col, Divider, message, Row, Space, Upload} from 'antd';
+import { Button, Col, Divider, message, Row, Space, Upload } from 'antd';
 import csvToJson from 'csvtojson';
-import {useEffect, useState} from 'react';
-import {mapDataToProfessions, ProfessionInterface, RowInterface} from "@/interfaces";
-import {Collapse} from 'antd';
+import { useEffect, useState } from 'react';
+import { mapDataToProfessions, ProfessionInterface, RowInterface } from '@/interfaces';
+import { Collapse } from 'antd';
 
-const {Panel} = Collapse;
-const {Dragger} = Upload;
-
+const { Panel } = Collapse;
+const { Dragger } = Upload;
 
 export default function Home() {
     const [file, setFile] = useState<string>();
     const [professionDetails, setProfessionDetails] = useState<ProfessionInterface | undefined>();
-    const [professions, setProfessions] = useState<ProfessionInterface[]>([])
+    const [professions, setProfessions] = useState<ProfessionInterface[]>([]);
 
     const update = () => {
         const ls = localStorage.getItem('firm-list');
@@ -20,7 +19,7 @@ export default function Home() {
             .fromString(ls as string)
             .then((json: RowInterface[]) => {
                 setProfessionDetails(mapDataToProfessions(json)[0]);
-                setProfessions(mapDataToProfessions(json))
+                setProfessions(mapDataToProfessions(json));
                 console.log('prof', mapDataToProfessions(json));
             });
     };
@@ -31,12 +30,12 @@ export default function Home() {
     }, []);
 
     return (
-        <div style={{height: '100vh', background: 'white', padding: '1rem'}}>
+        <div style={{ height: '100vh', background: 'white', padding: '1rem' }}>
             <Row>
                 <Col>
                     <Space>
                         <Dragger
-                            customRequest={({onSuccess}) => {
+                            customRequest={({ onSuccess }) => {
                                 onSuccess && onSuccess('ok');
                             }}
                             beforeUpload={(file) => {
@@ -70,7 +69,7 @@ export default function Home() {
                                     console.log('file', file);
                                     message.success('Soubor nahrán.');
                                 } else {
-                                    message.error('Prázdný soubor')
+                                    message.error('Prázdný soubor');
                                 }
                                 update();
                             }}
@@ -80,7 +79,7 @@ export default function Home() {
                         </Button>
                     </Space>
                 </Col>
-                <Divider/>
+                <Divider />
             </Row>
 
             <Row>
@@ -90,7 +89,7 @@ export default function Home() {
                             <Button
                                 key={index}
                                 type={profession.profession === professionDetails?.profession ? 'primary' : 'default'}
-                                style={{display: 'block'}}
+                                style={{ display: 'block' }}
                                 onClick={() => {
                                     setProfessionDetails(profession);
                                 }}
@@ -101,22 +100,21 @@ export default function Home() {
                     </Space>
                 </Col>
                 <Col span={1}>
-                    <Divider type={'vertical'} style={{height: '100%'}}/>
+                    <Divider type={'vertical'} style={{ height: '100%' }} />
                 </Col>
                 <Col span={18}>
-
-
                     <Collapse>
                         {professionDetails?.firms?.map((firm, index) => (
                             <Panel header={firm.title} key={index}>
-                                {firm.title} <br/>
-                                {firm?.street} <br/>
-                                {firm?.city} <br/>
-                                <br/>
-                                {firm?.person} <br/>
-                                {firm?.phone} <br/>
-                                {firm?.email} <br/>
-                            </Panel>))}
+                                <b>{firm.title}</b> <br />
+                                {firm?.street} <br />
+                                {firm?.city} <br />
+                                <br />
+                                <b>{firm?.person}</b> <br />
+                                {firm?.phone} <br />
+                                {firm?.email} <br />
+                            </Panel>
+                        ))}
                     </Collapse>
                 </Col>
                 {/*<Col span={10}>*/}
