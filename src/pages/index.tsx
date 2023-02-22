@@ -1,7 +1,7 @@
 import {Button, Col, Divider, message, Row, Space, Upload} from 'antd';
 import csvToJson from 'csvtojson';
 import {useEffect, useState} from 'react';
-import {mapDataToProfessions, ProfessionInterface} from "@/interfaces";
+import {mapDataToProfessions, ProfessionInterface, RowInterface} from "@/interfaces";
 import {Collapse} from 'antd';
 
 const {Panel} = Collapse;
@@ -18,7 +18,7 @@ export default function Home() {
         if (!ls) return;
         csvToJson()
             .fromString(ls as string)
-            .then((json) => {
+            .then((json: RowInterface[]) => {
                 setProfessionDetails(mapDataToProfessions(json)[0]);
                 setProfessions(mapDataToProfessions(json))
                 console.log('prof', mapDataToProfessions(json));
