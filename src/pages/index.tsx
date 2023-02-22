@@ -1,37 +1,27 @@
 import {Button, Col, Divider, message, Row, Space, Upload} from 'antd';
 import csvToJson from 'csvtojson';
 import {useEffect, useState} from 'react';
+import {mapDataToProfessions, ProfessionInterface} from "@/interfaces";
+import {Collapse} from 'antd';
 
+const {Panel} = Collapse;
 const {Dragger} = Upload;
 
-interface RowInterface {
-    profession: string;
-    col1row1?: string;
-    col1row2?: string;
-    col1row3?: string;
-    col1row4?: string;
-    col1row5?: string;
-    col1row6?: string;
-    col2row1?: string;
-    col2row2?: string;
-    col2row3?: string;
-    col2row4?: string;
-    col2row5?: string;
-    col2row6?: string;
-}
 
 export default function Home() {
     const [file, setFile] = useState<string>();
-    const [data, setData] = useState<RowInterface[]>([]);
-    const [professionDetails, setProfessionDetails] = useState<RowInterface | undefined>();
+    const [professionDetails, setProfessionDetails] = useState<ProfessionInterface | undefined>();
+    const [professions, setProfessions] = useState<ProfessionInterface[]>([])
+
     const update = () => {
         const ls = localStorage.getItem('firm-list');
         if (!ls) return;
         csvToJson()
             .fromString(ls as string)
             .then((json) => {
-                setData(json);
-                setProfessionDetails(json[0]);
+                setProfessionDetails(mapDataToProfessions(json)[0]);
+                setProfessions(mapDataToProfessions(json))
+                console.log('prof', mapDataToProfessions(json));
             });
     };
     useEffect(() => {
@@ -46,7 +36,6 @@ export default function Home() {
                 <Col>
                     <Space>
                         <Dragger
-                            // action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
                             customRequest={({onSuccess}) => {
                                 onSuccess && onSuccess('ok');
                             }}
@@ -97,40 +86,49 @@ export default function Home() {
             <Row>
                 <Col span={4}>
                     <Space direction="vertical">
-                        {data.map((row, index) => (
+                        {professions.map((profession, index) => (
                             <Button
                                 key={index}
-                                type={row.profession === professionDetails?.profession ? 'primary' : 'default'}
+                                type={profession.profession === professionDetails?.profession ? 'primary' : 'default'}
                                 style={{display: 'block'}}
                                 onClick={() => {
-                                    setProfessionDetails(row);
+                                    setProfessionDetails(profession);
                                 }}
                             >
-                                {index + 1}. {row.profession}
+                                {index + 1}. {profession.profession}
                             </Button>
                         ))}
                     </Space>
                 </Col>
-                <Col span={10}>
+                <Col span={1}>
                     <Divider type={'vertical'} style={{height: '100%'}}/>
-                    {professionDetails?.col1row1} <br/>
-                    {professionDetails?.col1row2} <br/>
-                    {professionDetails?.col1row3} <br/>
-                    <br/>
-                    {professionDetails?.col1row4} <br/>
-                    {professionDetails?.col1row5} <br/>
-                    {professionDetails?.col1row6} <br/>
                 </Col>
-                <Col span={10}>
-                    <Divider type={'vertical'} style={{height: '100%'}}/>
-                    {professionDetails?.col2row1} <br/>
-                    {professionDetails?.col2row2} <br/>
-                    {professionDetails?.col2row3} <br/>
-                    <br/>
-                    {professionDetails?.col2row4} <br/>
-                    {professionDetails?.col2row5} <br/>
-                    {professionDetails?.col2row6} <br/>
+                <Col span={18}>
+
+
+                    <Collapse>
+                        {professionDetails?.firms?.map((firm, index) => (
+                            <Panel header={firm.title} key={index}>
+                                {firm.title} <br/>
+                                {firm?.street} <br/>
+                                {firm?.city} <br/>
+                                <br/>
+                                {firm?.person} <br/>
+                                {firm?.phone} <br/>
+                                {firm?.email} <br/>
+                            </Panel>))}
+                    </Collapse>
                 </Col>
+                {/*<Col span={10}>*/}
+                {/*    <Divider type={'vertical'} style={{height: '100%'}}/>*/}
+                {/*    {professionDetails?.col2row1} <br/>*/}
+                {/*    {professionDetails?.col2row2} <br/>*/}
+                {/*    {professionDetails?.col2row3} <br/>*/}
+                {/*    <br/>*/}
+                {/*    {professionDetails?.col2row4} <br/>*/}
+                {/*    {professionDetails?.col2row5} <br/>*/}
+                {/*    {professionDetails?.col2row6} <br/>*/}
+                {/*</Col>*/}
             </Row>
         </div>
     );
