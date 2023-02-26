@@ -117,7 +117,10 @@ export default function Home() {
                                                 surname: 'Appleseed',
                                             },
                                         });
-                                        console.log('new Blob([report])', new Blob([report]));
+                                        console.log(
+                                            'new Blob([report])',
+                                            new Blob([report], { type: 'application/octet-stream' }),
+                                        );
                                         reader2.readAsDataURL(new Blob([report]));
                                         // if (typeof e.target?.result === 'string') setDocxFileUrl(e.target.result);
                                     };
@@ -127,10 +130,10 @@ export default function Home() {
                                 }
                             }}
                         >
-                            <p className="ant-upload-text">Nahrej docx</p>
+                            <p className="ant-upload-text">Nahrej šablonu .docx</p>
                         </Dragger>
                         <Button disabled={!docxFileUrl}>
-                            <a href={docxFileUrl} download>
+                            <a href={docxFileUrl} download={'export.docx'}>
                                 Stáhnout
                             </a>
                         </Button>
