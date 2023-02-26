@@ -106,13 +106,41 @@ export default function Home() {
                     <Collapse>
                         {professionDetails?.firms?.map((firm, index) => (
                             <Panel header={firm.title} key={firm.title || index}>
-                                <b>{firm.title}</b> <br />
-                                {firm?.street} <br />
-                                {firm?.city} <br />
+                                {firm.title && (
+                                    <>
+                                        <b>{firm.title}</b> <br />
+                                    </>
+                                )}
+                                {firm.street && (
+                                    <>
+                                        {firm.street}
+                                        <br />
+                                    </>
+                                )}
+                                {firm.city && (
+                                    <>
+                                        {firm.city}
+                                        <br />
+                                    </>
+                                )}
                                 <br />
-                                <b>{firm?.person}</b> <br />
-                                {firm?.phone} <br />
-                                {firm?.email} <br />
+                                {firm.person && (
+                                    <>
+                                        <b>{firm.person}</b> <br />
+                                    </>
+                                )}
+                                {firm.phone && (
+                                    <>
+                                        {firm.phone}
+                                        <br />
+                                    </>
+                                )}
+                                {firm.email && (
+                                    <>
+                                        {firm.email}
+                                        <br />
+                                    </>
+                                )}
                             </Panel>
                         ))}
                     </Collapse>
