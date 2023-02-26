@@ -105,7 +105,7 @@ export default function Home() {
                 <Col span={18}>
                     <Collapse>
                         {professionDetails?.firms?.map((firm, index) => (
-                            <Panel header={firm.title} key={index}>
+                            <Panel header={firm.title} key={firm.title || index}>
                                 <b>{firm.title}</b> <br />
                                 {firm?.street} <br />
                                 {firm?.city} <br />
