@@ -3,6 +3,8 @@ import csvToJson from 'csvtojson';
 import { useEffect, useState } from 'react';
 import { mapDataToProfessions, ProfessionInterface, RowInterface } from '@/interfaces';
 import createReport from 'docx-templates';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 
 const { Panel } = Collapse;
 const { Dragger } = Upload;
@@ -11,7 +13,6 @@ export default function Home() {
     const [file, setFile] = useState<string>();
     const [professionDetails, setProfessionDetails] = useState<ProfessionInterface | undefined>();
     const [professions, setProfessions] = useState<ProfessionInterface[]>([]);
-    const [docxFileUrl, setDocxFileUrl] = useState<string>();
     const update = () => {
         const ls = localStorage.getItem('firm-list');
         if (!ls) return;
@@ -28,6 +29,8 @@ export default function Home() {
             update();
         }
     }, []);
+
+    const zip = new JSZip();
 
     return (
         <div style={{ height: '100vh', background: 'white', padding: '1rem' }}>
@@ -97,32 +100,23 @@ export default function Home() {
                             onChange={(info) => {
                                 if (info.file.status === 'done') {
                                     const reader = new FileReader();
-                                    const reader2 = new FileReader();
-                                    reader2.onload = (e) => {
-                                        e.preventDefault();
-                                        if (typeof e.target?.result === 'string') {
-                                            console.log('e.target?.result', e.target?.result);
-                                            setDocxFileUrl(e.target?.result);
-                                        }
-                                    };
                                     reader.onload = async (e) => {
                                         e.preventDefault();
-                                        // console.log('e.target?.result', e.target?.result);
                                         const template = Buffer.from(e.target?.result as ArrayBuffer);
-                                        console.log('template', template);
-                                        const report = await createReport({
-                                            template,
-                                            data: {
-                                                title: 'Abc',
-                                                surname: 'Appleseed',
-                                            },
+
+                                        professions.map((p) => {
+                                            const folder = zip.folder(p.profession);
+                                            p.firms.map(async (firm) => {
+                                                const report = await createReport({
+                                                    template,
+                                                    data: {
+                                                        title: firm.title,
+                                                    },
+                                                });
+                                                folder?.file(`${firm.title}.docx`, report);
+                                            });
                                         });
-                                        console.log(
-                                            'new Blob([report])',
-                                            new Blob([report], { type: 'application/octet-stream' }),
-                                        );
-                                        reader2.readAsDataURL(new Blob([report]));
-                                        // if (typeof e.target?.result === 'string') setDocxFileUrl(e.target.result);
+
                                     };
                                     if (info.file.originFileObj) {
                                         reader.readAsArrayBuffer(info.file.originFileObj);
@@ -132,10 +126,17 @@ export default function Home() {
                         >
                             <p className="ant-upload-text">Nahrej šablonu .docx</p>
                         </Dragger>
-                        <Button disabled={!docxFileUrl}>
-                            <a href={docxFileUrl} download={'export.docx'}>
-                                Stáhnout
-                            </a>
+                        <Button
+                            // disabled={!docxFileUrl}
+                            onClick={() => {
+                                zip.generateAsync({ type: 'blob' }).then(function (content) {
+                                    saveAs(content, 'example.zip');
+                                });
+                            }}
+                        >
+                            {/*<a href={docxFileUrl} download={'export.docx'}>*/}
+                            Stáhnout
+                            {/*</a>*/}
                         </Button>
                     </Space>
                 </Col>
