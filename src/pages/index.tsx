@@ -77,19 +77,20 @@ export default function Home() {
             <AntdForm
                 form={form}
                 onFinish={onFinish}
-                labelCol={{ span: 18 }}
-                wrapperCol={{ span: 16 }}
+                labelCol={{ span: 10 }}
+                wrapperCol={{ span: 14 }}
                 initialValues={{ template: null }}
             >
                 <Row>
-                    <Col>
+                    <Col span={6}>
                         <Space>
                             <CsvUpload update={update} />
 
                             <DocxUpload setFieldValue={form.setFieldValue} isSubmitting={isSubmitting} />
-
-                            <Form />
                         </Space>
+                    </Col>
+                    <Col span={18}>
+                        <Form />
                     </Col>
                     <Divider />
                 </Row>

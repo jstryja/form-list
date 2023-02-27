@@ -28,7 +28,6 @@ const Form: React.FC<FormProps> = ({ }) => {
                 <Input />
             </AntdForm.Item>
         </>
-
     );
 };
 
