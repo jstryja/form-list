@@ -15,6 +15,7 @@ export default function Home() {
     const [professionDetails, setProfessionDetails] = useState<ProfessionInterface | undefined>();
     const [professions, setProfessions] = useState<ProfessionInterface[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [initialValues, setInitialValues] = useState();
     const update = () => {
         const ls = localStorage.getItem('firm-list');
         if (!ls) return;
@@ -27,12 +28,16 @@ export default function Home() {
     };
     useEffect(() => {
         if (typeof window !== 'undefined') {
+            const ls = localStorage.getItem('firm-list-form');
+            setInitialValues(ls ? JSON.parse(ls) : null);
             update();
         }
     }, []);
-
-    const zip = new JSZip();
     const [form] = AntdForm.useForm<FormValues>();
+    useEffect(() => {
+        form.resetFields();
+    }, [initialValues]);
+    const zip = new JSZip();
     const onFinish = async (values: FormValues) => {
         setIsSubmitting(true);
         const promises = professions.map(async (p) => {
@@ -71,6 +76,15 @@ export default function Home() {
         });
         setIsSubmitting(false);
     };
+    const onValuesChange = (changedValue: { [key: string]: any }) => {
+        const ls = localStorage.getItem('firm-list-form');
+        const prevObj = ls ? JSON.parse(ls) : null;
+        const newObj = {
+            ...prevObj,
+            ...changedValue,
+        };
+        localStorage.setItem('firm-list-form', JSON.stringify(newObj));
+    };
 
     return (
         <div style={{ height: '100vh', background: 'white', padding: '1rem' }}>
@@ -79,7 +93,8 @@ export default function Home() {
                 onFinish={onFinish}
                 labelCol={{ span: 10 }}
                 wrapperCol={{ span: 14 }}
-                initialValues={{ template: null }}
+                onValuesChange={onValuesChange}
+                initialValues={initialValues}
             >
                 <Row>
                     <Col span={6}>
