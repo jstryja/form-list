@@ -86,7 +86,7 @@ export default function Home() {
                         <Space>
                             <CsvUpload update={update} />
 
-                            <DocxUpload setFieldValue={form.setFieldValue} isSubmitting={isSubmitting}/>
+                            <DocxUpload setFieldValue={form.setFieldValue} isSubmitting={isSubmitting} />
 
                             <Form />
                         </Space>
@@ -100,10 +100,11 @@ export default function Home() {
                             {professions.map((profession, index) => (
                                 <Button
                                     key={profession.profession}
+                                    block
                                     type={
                                         profession.profession === professionDetails?.profession ? 'primary' : 'default'
                                     }
-                                    style={{ display: 'block' }}
+                                    style={{ display: 'block', textAlign: 'left' }}
                                     onClick={() => {
                                         setProfessionDetails(profession);
                                     }}
