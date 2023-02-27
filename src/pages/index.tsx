@@ -1,18 +1,20 @@
-import { Button, Col, Collapse, Divider, message, Row, Space, Upload } from 'antd';
+import { Button, Col, Collapse, Divider, Form as AntdForm, Input, Row, Space } from 'antd';
 import csvToJson from 'csvtojson';
-import { useEffect, useState } from 'react';
-import { mapDataToProfessions, ProfessionInterface, RowInterface } from '@/interfaces';
-import createReport from 'docx-templates';
+import React, { useEffect, useState } from 'react';
+import { FormValues, mapDataToProfessions, ProfessionInterface, RowInterface } from '@/interfaces';
 import JSZip from 'jszip';
+import Form from '@/components/form';
+import CsvUpload from '@/components/csvUpload';
+import DocxUpload from '@/components/docxUpload';
 import { saveAs } from 'file-saver';
+import createReport from 'docx-templates';
 
 const { Panel } = Collapse;
-const { Dragger } = Upload;
 
 export default function Home() {
-    const [file, setFile] = useState<string>();
     const [professionDetails, setProfessionDetails] = useState<ProfessionInterface | undefined>();
     const [professions, setProfessions] = useState<ProfessionInterface[]>([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const update = () => {
         const ls = localStorage.getItem('firm-list');
         if (!ls) return;
@@ -21,7 +23,6 @@ export default function Home() {
             .then((json: RowInterface[]) => {
                 setProfessionDetails(mapDataToProfessions(json)[0]);
                 setProfessions(mapDataToProfessions(json));
-                console.log('prof', mapDataToProfessions(json));
             });
     };
     useEffect(() => {
@@ -31,182 +32,147 @@ export default function Home() {
     }, []);
 
     const zip = new JSZip();
+    const [form] = AntdForm.useForm<FormValues>();
+    const onFinish = async (values: FormValues) => {
+        setIsSubmitting(true);
+        const promises = professions.map(async (p) => {
+            const { sendDate, title, estimateDate, place, deadlineDate, workType, template } = values;
+            const folder = zip.folder(p.profession);
+            const subpromises = p.firms.map(async (firm) => {
+                return new Promise<void>(async (resolve) => {
+                    const report = await createReport({
+                        template,
+                        data: {
+                            sendDate,
+                            title,
+                            estimateDate,
+                            place,
+                            deadlineDate,
+                            workType: workType[p.profession],
+                            firmTitle: firm.title || '',
+                            firmStreet: firm.street || '',
+                            firmCity: firm.city || '',
+                            firmPerson: firm.person || '',
+                            firmPhone: firm.phone || '',
+                            firmEmail: firm.email || '',
+                        },
+                    });
+                    folder?.file(`${firm.title}.docx`, report);
+                    resolve();
+                });
+            });
+            await Promise.all(subpromises);
+            return subpromises;
+        });
+        await Promise.all(promises);
+        console.log('done');
+        zip.generateAsync({ type: 'blob' }).then(function (content) {
+            saveAs(content, 'dopisy.zip');
+        });
+        setIsSubmitting(false);
+    };
 
     return (
         <div style={{ height: '100vh', background: 'white', padding: '1rem' }}>
-            <Row>
-                <Col>
-                    <Space>
-                        <Dragger
-                            customRequest={({ onSuccess }) => {
-                                onSuccess && onSuccess('ok');
-                            }}
-                            beforeUpload={(file) => {
-                                const isCSV = file.type === 'text/csv';
-                                if (!isCSV) {
-                                    message.error(`${file.name} není csv soubor.`);
-                                }
-                                return isCSV || Upload.LIST_IGNORE;
-                            }}
-                            maxCount={1}
-                            onChange={(info) => {
-                                if (info.file.status === 'done') {
-                                    const reader = new FileReader();
-                                    reader.onload = (e) => {
-                                        e.preventDefault();
-                                        if (typeof e.target?.result === 'string') setFile(e.target.result);
-                                    };
-                                    if (info.file.originFileObj) {
-                                        reader.readAsText(info.file.originFileObj);
+            <AntdForm
+                form={form}
+                onFinish={onFinish}
+                labelCol={{ span: 18 }}
+                wrapperCol={{ span: 16 }}
+                initialValues={{ template: null }}
+            >
+                <Row>
+                    <Col>
+                        <Space>
+                            <CsvUpload update={update} />
+
+                            <DocxUpload setFieldValue={form.setFieldValue} isSubmitting={isSubmitting}/>
+
+                            <Form />
+                        </Space>
+                    </Col>
+                    <Divider />
+                </Row>
+
+                <Row>
+                    <Col span={4}>
+                        <Space direction="vertical">
+                            {professions.map((profession, index) => (
+                                <Button
+                                    key={profession.profession}
+                                    type={
+                                        profession.profession === professionDetails?.profession ? 'primary' : 'default'
                                     }
-                                }
-                            }}
-                        >
-                            <p className="ant-upload-text">Nahrej CSV</p>
-                        </Dragger>
-
-                        <Button
-                            type={'primary'}
-                            onClick={() => {
-                                if (file) {
-                                    localStorage.setItem('firm-list', file);
-                                    console.log('file', file);
-                                    message.success('Soubor nahrán.');
-                                } else {
-                                    message.error('Prázdný soubor');
-                                }
-                                update();
-                            }}
-                            disabled={!file}
-                        >
-                            ODESLAT
-                        </Button>
-
-                        <Dragger
-                            customRequest={({ onSuccess }) => {
-                                onSuccess && onSuccess('ok');
-                            }}
-                            beforeUpload={(file) => {
-                                console.log('file.type', file.type);
-                                const isCSV =
-                                    file.type ===
-                                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-                                if (!isCSV) {
-                                    message.error(`${file.name} není docx soubor.`);
-                                }
-                                return isCSV || Upload.LIST_IGNORE;
-                            }}
-                            maxCount={1}
-                            onChange={(info) => {
-                                if (info.file.status === 'done') {
-                                    const reader = new FileReader();
-                                    reader.onload = async (e) => {
-                                        e.preventDefault();
-                                        const template = Buffer.from(e.target?.result as ArrayBuffer);
-
-                                        professions.map((p) => {
-                                            const folder = zip.folder(p.profession);
-                                            p.firms.map(async (firm) => {
-                                                const report = await createReport({
-                                                    template,
-                                                    data: {
-                                                        title: firm.title,
-                                                    },
-                                                });
-                                                folder?.file(`${firm.title}.docx`, report);
-                                            });
-                                        });
-
-                                    };
-                                    if (info.file.originFileObj) {
-                                        reader.readAsArrayBuffer(info.file.originFileObj);
-                                    }
-                                }
-                            }}
-                        >
-                            <p className="ant-upload-text">Nahrej šablonu .docx</p>
-                        </Dragger>
-                        <Button
-                            // disabled={!docxFileUrl}
-                            onClick={() => {
-                                zip.generateAsync({ type: 'blob' }).then(function (content) {
-                                    saveAs(content, 'example.zip');
-                                });
-                            }}
-                        >
-                            {/*<a href={docxFileUrl} download={'export.docx'}>*/}
-                            Stáhnout
-                            {/*</a>*/}
-                        </Button>
-                    </Space>
-                </Col>
-                <Divider />
-            </Row>
-
-            <Row>
-                <Col span={4}>
-                    <Space direction="vertical">
-                        {professions.map((profession, index) => (
-                            <Button
-                                key={index}
-                                type={profession.profession === professionDetails?.profession ? 'primary' : 'default'}
-                                style={{ display: 'block' }}
-                                onClick={() => {
-                                    setProfessionDetails(profession);
+                                    style={{ display: 'block' }}
+                                    onClick={() => {
+                                        setProfessionDetails(profession);
+                                    }}
+                                >
+                                    {index + 1}. {profession.profession}
+                                </Button>
+                            ))}
+                        </Space>
+                    </Col>
+                    <Col span={1}>
+                        <Divider type={'vertical'} style={{ height: '100%' }} />
+                    </Col>
+                    <Col span={18}>
+                        {professions.map((profession) => (
+                            <div
+                                key={profession.profession}
+                                style={{
+                                    display: profession.profession === professionDetails?.profession ? 'block' : 'none',
                                 }}
                             >
-                                {index + 1}. {profession.profession}
-                            </Button>
+                                <AntdForm.Item name={['workType', profession?.profession || '']}>
+                                    <Input style={{ marginBottom: '0.5rem' }} placeholder={'typ práce'} />
+                                </AntdForm.Item>
+                                <Collapse>
+                                    {professionDetails?.firms?.map((firm, index) => (
+                                        <Panel header={firm.title} key={firm.title || index}>
+                                            {firm.title && (
+                                                <>
+                                                    <b>{firm.title}</b> <br />
+                                                </>
+                                            )}
+                                            {firm.street && (
+                                                <>
+                                                    {firm.street}
+                                                    <br />
+                                                </>
+                                            )}
+                                            {firm.city && (
+                                                <>
+                                                    {firm.city}
+                                                    <br />
+                                                </>
+                                            )}
+                                            <br />
+                                            {firm.person && (
+                                                <>
+                                                    <b>{firm.person}</b> <br />
+                                                </>
+                                            )}
+                                            {firm.phone && (
+                                                <>
+                                                    {firm.phone}
+                                                    <br />
+                                                </>
+                                            )}
+                                            {firm.email && (
+                                                <>
+                                                    {firm.email}
+                                                    <br />
+                                                </>
+                                            )}
+                                        </Panel>
+                                    ))}
+                                </Collapse>
+                            </div>
                         ))}
-                    </Space>
-                </Col>
-                <Col span={1}>
-                    <Divider type={'vertical'} style={{ height: '100%' }} />
-                </Col>
-                <Col span={18}>
-                    <Collapse>
-                        {professionDetails?.firms?.map((firm, index) => (
-                            <Panel header={firm.title} key={firm.title || index}>
-                                {firm.title && (
-                                    <>
-                                        <b>{firm.title}</b> <br />
-                                    </>
-                                )}
-                                {firm.street && (
-                                    <>
-                                        {firm.street}
-                                        <br />
-                                    </>
-                                )}
-                                {firm.city && (
-                                    <>
-                                        {firm.city}
-                                        <br />
-                                    </>
-                                )}
-                                <br />
-                                {firm.person && (
-                                    <>
-                                        <b>{firm.person}</b> <br />
-                                    </>
-                                )}
-                                {firm.phone && (
-                                    <>
-                                        {firm.phone}
-                                        <br />
-                                    </>
-                                )}
-                                {firm.email && (
-                                    <>
-                                        {firm.email}
-                                        <br />
-                                    </>
-                                )}
-                            </Panel>
-                        ))}
-                    </Collapse>
-                </Col>
-            </Row>
+                    </Col>
+                </Row>
+            </AntdForm>
         </div>
     );
 }

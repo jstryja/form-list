@@ -10,7 +10,6 @@ export interface FirmInterface {
 export interface ProfessionInterface {
     profession: string;
     firms: FirmInterface[];
-
 }
 
 export interface RowInterface {
@@ -35,11 +34,11 @@ export const mapDataToProfessions = (data: RowInterface[]): ProfessionInterface[
             city: firm.city,
             person: firm.person,
             phone: firm.phone,
-            email: firm.email
+            email: firm.email,
         };
 
         if (!professionMap.has(profession)) {
-            const professionObj = {profession: profession, firms: [firmInfo]};
+            const professionObj = { profession: profession, firms: [firmInfo] };
             professions.push(professionObj);
             professionMap.set(profession, professionObj);
         } else {
@@ -49,8 +48,17 @@ export const mapDataToProfessions = (data: RowInterface[]): ProfessionInterface[
     }
 
     return professions;
-}
+};
 
+export interface FormValues {
+    sendDate: string;
+    title: string;
+    estimateDate: string;
+    place: string;
+    deadlineDate: string;
+    workType: { [key: string]: string };
+    template: Buffer;
+}
 
 // export const mapDataToProfessions = (data: RowInterface[]): ProfessionInterface[] => {
 //     const professions: ProfessionInterface[] = [];
