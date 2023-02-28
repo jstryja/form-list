@@ -141,7 +141,13 @@ export default function Home() {
                                     display: profession.profession === professionDetails?.profession ? 'block' : 'none',
                                 }}
                             >
-                                <AntdForm.Item name={['workType', profession?.profession || '']}>
+                                <AntdForm.Item
+                                    name={['workType', profession?.profession || '']}
+                                    label={
+                                        'Dobrý den, jako uchazeč o generálního dodavatele této stavby se na Vás obracím se žádostí o zpracování cenové nabídky na'
+                                    }
+                                    labelCol={{ span: 24 }}
+                                >
                                     <Input style={{ marginBottom: '0.5rem' }} placeholder={'typ práce'} />
                                 </AntdForm.Item>
                                 <Collapse>
