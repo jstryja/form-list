@@ -111,8 +111,8 @@ export default function Home() {
                 </Row>
 
                 <Row>
-                    <Col span={4}>
-                        <Space direction="vertical">
+                    <Col lg={7} md={8} sm={10} xs={11}>
+                        <Space direction="vertical" style={{ width: '100%' }}>
                             {professions.map((profession, index) => (
                                 <Button
                                     key={profession.profession}
@@ -130,10 +130,10 @@ export default function Home() {
                             ))}
                         </Space>
                     </Col>
-                    <Col span={1}>
+                    <Col xs={1}>
                         <Divider type={'vertical'} style={{ height: '100%' }} />
                     </Col>
-                    <Col span={18}>
+                    <Col lg={16} md={15} sm={13} xs={12}>
                         {professions.map((profession) => (
                             <div
                                 key={profession.profession}
@@ -144,11 +144,16 @@ export default function Home() {
                                 <AntdForm.Item
                                     name={['workType', profession?.profession || '']}
                                     label={
-                                        'Dobrý den, jako uchazeč o generálního dodavatele této stavby se na Vás obracím se žádostí o zpracování cenové nabídky na'
+                                        // <p style={{ display: 'inline-block' }}>
+                                        //     Dobrý den, jako uchazeč o generálního dodavatele této stavby se na Vás
+                                        //     obracím se žádostí o zpracování cenové nabídky na
+                                        // </p>
+                                        'Dobrý den, jako uchazeč o generálního dodavatele této stavby se na Vás\n' +
+                                        '                                            obracím se žádostí o zpracování cenové nabídky na'
                                     }
                                     labelCol={{ span: 24 }}
                                 >
-                                    <Input style={{ marginBottom: '0.5rem' }} placeholder={'typ práce'} />
+                                    <Input style={{ marginBottom: '0.5rem', marginTop: 0 }} placeholder={'typ práce'} />
                                 </AntdForm.Item>
                                 <Collapse>
                                     {professionDetails?.firms?.map((firm, index) => (
