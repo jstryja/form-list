@@ -1,5 +1,5 @@
 export interface FirmInterface {
-    title?: string;
+    title: string;
     street?: string;
     city?: string;
     person?: string;
@@ -14,7 +14,7 @@ export interface ProfessionInterface {
 
 export interface RowInterface {
     profession: string;
-    title?: string;
+    title: string;
     street?: string;
     city?: string;
     person?: string;
