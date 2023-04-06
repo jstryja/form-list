@@ -242,7 +242,7 @@ export default function Home() {
                                             </Collapse>
                                         </Col>
                                         <Col sm={4} md={4} style={{ paddingLeft: '1rem' }}>
-                                            {firm.web && <a style={{ color: 'black' }}>WEB</a>}
+                                            {firm.web && <a style={{ color: 'black' }} href={firm.web} target={'blank'}>WEB</a>}
                                         </Col>
                                     </Row>
                                 ))}
