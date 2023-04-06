@@ -81,7 +81,7 @@ export default function Home() {
                             firmEmail: firm.email || '',
                         },
                     });
-                    folder?.file(`${firm.title}.docx`, report);
+                    folder?.file(`Poptávkový dopis - ${firm.title}.docx`, report);
                     resolve();
                 });
             });
