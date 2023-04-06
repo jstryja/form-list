@@ -61,6 +61,7 @@ export interface FormValues {
     deadlineDate: string;
     workType: { [key: string]: string };
     template: Buffer;
+    checked: { [key: string]: { [key: string]: boolean | undefined } };
 }
 
 // export const mapDataToProfessions = (data: RowInterface[]): ProfessionInterface[] => {
