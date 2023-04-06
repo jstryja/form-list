@@ -6,10 +6,10 @@ const { Dragger } = Upload;
 
 interface DocxUploadProps {
     setFieldValue: (name: NamePath, value: any) => void;
-    isSubmitting: boolean;
+    btnDisabled: boolean;
 }
 
-const DocxUpload: React.FC<DocxUploadProps> = ({ setFieldValue, isSubmitting }) => {
+const DocxUpload: React.FC<DocxUploadProps> = ({ setFieldValue, btnDisabled }) => {
     return (
         <>
             <AntdForm.Item name={'template'}>
@@ -43,7 +43,7 @@ const DocxUpload: React.FC<DocxUploadProps> = ({ setFieldValue, isSubmitting }) 
                     <p className="ant-upload-text">Nahrej šablonu .docx</p>
                 </Dragger>
             </AntdForm.Item>
-            <Button disabled={isSubmitting} htmlType="submit">
+            <Button disabled={btnDisabled} htmlType="submit">
                 Stáhnout zip
             </Button>
         </>

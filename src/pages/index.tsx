@@ -1,7 +1,7 @@
 import { Button, Checkbox, Col, Collapse, Divider, Form as AntdForm, Input, Row, Space } from 'antd';
 import csvToJson from 'csvtojson';
 import React, { useEffect, useState } from 'react';
-import { FormValues, mapDataToProfessions, ProfessionInterface, RowInterface } from '@/interfaces';
+import {FirmInterface, FormValues, mapDataToProfessions, ProfessionInterface, RowInterface} from '@/interfaces';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import createReport from 'docx-templates';
@@ -14,7 +14,6 @@ export default function Home() {
     const [professions, setProfessions] = useState<ProfessionInterface[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [initialValues, setInitialValues] = useState();
-    console.log('professionDetails', professionDetails);
     const update = () => {
         console.log('update');
         const ls = localStorage.getItem('firm-list');
@@ -27,6 +26,7 @@ export default function Home() {
             });
     };
     useEffect(() => {
+        // const socket = new WebSocket(address);
         if (typeof window !== 'undefined') {
             const ls = localStorage.getItem('firm-list-form');
             setInitialValues(ls ? JSON.parse(ls) : null);
@@ -39,43 +39,63 @@ export default function Home() {
     }, [initialValues]);
     const zip = new JSZip();
     const onFinish = async (values: FormValues) => {
-        console.log('values', values);
-        // setIsSubmitting(true);
-        // const promises = professions.map(async (p) => {
-        //     const { sendDate, title, estimateDate, place, deadlineDate, workType, template } = values;
-        //     const folder = zip.folder(p.profession);
-        //     const subpromises = p.firms.map(async (firm) => {
-        //         return new Promise<void>(async (resolve) => {
-        //             const report = await createReport({
-        //                 template,
-        //                 data: {
-        //                     sendDate,
-        //                     title,
-        //                     estimateDate,
-        //                     place,
-        //                     deadlineDate,
-        //                     workType: workType[p.profession],
-        //                     firmTitle: firm.title || '',
-        //                     firmStreet: firm.street || '',
-        //                     firmCity: firm.city || '',
-        //                     firmPerson: firm.person || '',
-        //                     firmPhone: firm.phone || '',
-        //                     firmEmail: firm.email || '',
-        //                 },
-        //             });
-        //             folder?.file(`${firm.title}.docx`, report);
-        //             resolve();
-        //         });
-        //     });
-        //     await Promise.all(subpromises);
-        //     return subpromises;
-        // });
-        // await Promise.all(promises);
-        // console.log('done');
-        // zip.generateAsync({ type: 'blob' }).then(function (content) {
-        //     saveAs(content, 'dopisy.zip');
-        // });
-        // setIsSubmitting(false);
+        const proffesionsKeysWithTrueValue: string[] = [];
+        Object.keys(values.checked).filter((key) => {
+            if (Object.values(values.checked[key]).some((value) => value === true)) {
+                proffesionsKeysWithTrueValue.push(key);
+            }
+        });
+        const selectedProffesions: ProfessionInterface[] = professions.filter((p) =>
+            proffesionsKeysWithTrueValue.includes(p.profession),
+        );
+
+        setIsSubmitting(true);
+        const promises = selectedProffesions.map(async (p) => {
+            const { sendDate, title, estimateDate, place, deadlineDate, workType, template } = values;
+            const folder = zip.folder(p.profession);
+
+            const firmsKeysWithTrueValue: string[] = [];
+            Object.keys(values?.checked?.[p.profession]).map((firmKey) => {
+                if(values?.checked?.[p.profession]?.[firmKey]) {
+                    firmsKeysWithTrueValue.push(firmKey)
+                }
+            })
+            const selectedFirms: FirmInterface[] = p.firms.filter((firm) => firmsKeysWithTrueValue.includes(firm.title))
+
+            const subpromises = selectedFirms.map(async (firm) => {
+                return new Promise<void>(async (resolve) => {
+                    const report = await createReport({
+                        template,
+                        data: {
+                            sendDate,
+                            title,
+                            estimateDate,
+                            place,
+                            deadlineDate,
+                            workType: workType[p.profession],
+                            firmTitle: firm.title || '',
+                            firmStreet: firm.street || '',
+                            firmCity: firm.city || '',
+                            firmPerson: firm.person || '',
+                            firmPhone: firm.phone || '',
+                            firmEmail: firm.email || '',
+                        },
+                    });
+                    folder?.file(`${firm.title}.docx`, report);
+                    resolve();
+                });
+            });
+            await Promise.all(subpromises);
+            return subpromises;
+        });
+        await Promise.all(promises);
+        console.log('3', promises.length);
+        console.log('done');
+        zip.generateAsync({ type: 'blob' }).then(function (content) {
+            console.log('content', content);
+            saveAs(content, 'dopisy.zip');
+        });
+        setIsSubmitting(false);
     };
     const onValuesChange = (changedValue: { [key: string]: any }) => {
         const ls = localStorage.getItem('firm-list-form');
@@ -84,6 +104,7 @@ export default function Home() {
             ...prevObj,
             ...changedValue,
         };
+        delete newObj.template;
         localStorage.setItem('firm-list-form', JSON.stringify(newObj));
     };
 
@@ -97,31 +118,36 @@ export default function Home() {
                 onValuesChange={onValuesChange}
                 initialValues={initialValues}
             >
-                <Header update={update} setFieldValue={form.setFieldValue} isSubmitting={isSubmitting} />
+                <Header
+                    btnDisabled={isSubmitting}
+                    update={update}
+                    setFieldValue={form.setFieldValue}
+                />
 
                 <Row>
                     <Col lg={7} md={8} sm={10} xs={11}>
                         <Space direction="vertical" style={{ width: '100%' }}>
                             {professions.map((profession, index) => (
                                 <Row align="middle" key={profession.profession}>
-                                    <Col span={2}>
-                                        <Checkbox
-                                            onChange={(e) => {
-                                                profession.firms.map((firm) => {
-                                                    console.log(
-                                                        'key',
-                                                        `checked.${profession.profession}.${firm.title}`,
-                                                        e.target.checked,
-                                                    );
-                                                    form.setFieldValue(
-                                                        `checked.${profession.profession}.${firm.title}`,
-                                                        true,
-                                                    );
-                                                    console.log('form', form.getFieldsValue());
-                                                });
-                                            }}
-                                        />
-                                    </Col>
+                                    {/*TODO*/}
+                                    {/*<Col span={2}>*/}
+                                    {/*    <Checkbox*/}
+                                    {/*        onChange={(e) => {*/}
+                                    {/*            profession.firms.map((firm) => {*/}
+                                    {/*                console.log(*/}
+                                    {/*                    'key',*/}
+                                    {/*                    `checked.${profession.profession}.${firm.title}`,*/}
+                                    {/*                    e.target.checked,*/}
+                                    {/*                );*/}
+                                    {/*                form.setFieldValue(*/}
+                                    {/*                    `checked.${profession.profession}.${firm.title}`,*/}
+                                    {/*                    true,*/}
+                                    {/*                );*/}
+                                    {/*                console.log('form', form.getFieldsValue());*/}
+                                    {/*            });*/}
+                                    {/*        }}*/}
+                                    {/*    />*/}
+                                    {/*</Col>*/}
                                     <Col span={22}>
                                         <Button
                                             block
@@ -163,17 +189,18 @@ export default function Home() {
                                     <Input style={{ marginBottom: '0.5rem', marginTop: 0 }} placeholder={'typ práce'} />
                                 </AntdForm.Item>
                                 {/*neotestovano*/}
-                                {profession?.firms?.map((firm, index) => (
+                                {profession?.firms?.map((firm) => (
                                     <Row key={firm.title} align={'middle'}>
                                         <Col sm={2} md={1}>
                                             <AntdForm.Item
                                                 name={['checked', profession.profession, firm.title]}
                                                 valuePropName="checked"
+                                                style={{ marginBlock: 0 }}
                                             >
                                                 <Checkbox />
                                             </AntdForm.Item>
                                         </Col>
-                                        <Col sm={22} md={23}>
+                                        <Col sm={18} md={19}>
                                             <Collapse>
                                                 <Panel key={firm.title} header={firm.title}>
                                                     {firm.title && (
@@ -213,6 +240,9 @@ export default function Home() {
                                                     )}
                                                 </Panel>
                                             </Collapse>
+                                        </Col>
+                                        <Col sm={4} md={4} style={{ paddingLeft: '1rem' }}>
+                                            {firm.web && <a style={{ color: 'black' }}>WEB</a>}
                                         </Col>
                                     </Row>
                                 ))}

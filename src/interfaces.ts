@@ -5,6 +5,7 @@ export interface FirmInterface {
     person?: string;
     phone?: string;
     email?: string;
+    web?: string;
 }
 
 export interface ProfessionInterface {
@@ -20,6 +21,7 @@ export interface RowInterface {
     person?: string;
     phone?: string;
     email?: string;
+    web?: string;
 }
 
 export const mapDataToProfessions = (data: RowInterface[]): ProfessionInterface[] => {
@@ -35,6 +37,7 @@ export const mapDataToProfessions = (data: RowInterface[]): ProfessionInterface[
             person: firm.person,
             phone: firm.phone,
             email: firm.email,
+            web: firm.web,
         };
 
         if (!professionMap.has(profession)) {

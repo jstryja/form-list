@@ -8,17 +8,17 @@ import { NamePath } from 'rc-field-form/es/interface';
 interface HeaderProps {
     update: () => void;
     setFieldValue: (name: NamePath, value: any) => void;
-    isSubmitting: boolean;
+    btnDisabled: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ update, setFieldValue, isSubmitting }) => {
+const Header: React.FC<HeaderProps> = ({ update, setFieldValue, btnDisabled }) => {
     return (
         <Row>
             <Col span={6}>
                 <Space>
                     <CsvUpload update={update} />
 
-                    <DocxUpload setFieldValue={setFieldValue} isSubmitting={isSubmitting} />
+                    <DocxUpload setFieldValue={setFieldValue} btnDisabled={btnDisabled} />
                 </Space>
             </Col>
             <Col span={18}>
